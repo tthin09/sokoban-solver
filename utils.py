@@ -5,7 +5,7 @@ import numpy as np
 RED = (255, 0, 0)
 GREEN = (0, 0, 255)
 BLACK = (0, 0, 0)
-YELLOW = (255, 0, 255)
+YELLOW = (255, 255, 0)
 
 # HSV
 HSV_RANGE = {

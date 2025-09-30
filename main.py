@@ -7,13 +7,17 @@ from utils import RED, GREEN, BLACK, YELLOW, HSV_RANGE
 
 def convert_image_to_map(image_path: str, tile_method="") -> list:
     img = cv.imread(image_path, cv.IMREAD_GRAYSCALE)
+    
     wall_template = cv.imread('assets/wall_center.png', cv.IMREAD_GRAYSCALE)
-    w, h = wall_template.shape[::-1]
+    TILE_SCALE = 1
+    if img.shape[0] <= 600 or img.shape[1] <= 600:
+        TILE_SCALE = 0.7
+    wall_template = cv.resize(wall_template, None, fx=TILE_SCALE, fy=TILE_SCALE, interpolation=cv.INTER_AREA)
+    wall_w, wall_h = wall_template.shape[::-1]
 
-    TEMPLATE = 'TM_CCOEFF_NORMED'
-    METHOD = getattr(cv, TEMPLATE)
-    THRESHOLD = 0.85
-    MIN_DISTANCE = 40
+    METHOD = cv.TM_CCOEFF_NORMED
+    THRESHOLD = 0.75
+    MIN_DISTANCE = 10
 
     # Apply template Matching
     res = cv.matchTemplate(img, wall_template, METHOD)
@@ -26,7 +30,7 @@ def convert_image_to_map(image_path: str, tile_method="") -> list:
         points_with_scores.append((score, pt_y, pt_x))
     points_with_scores.sort(key=lambda x: x[0], reverse=True)
 
-    loc_filtered = filter_minimum_distance(points_with_scores, w, h, MIN_DISTANCE)
+    loc_filtered = filter_minimum_distance(points_with_scores, wall_w, wall_h, MIN_DISTANCE)
     loc_filtered = sorted(loc_filtered, key=lambda item: (item[0], item[1]))
     
     # Create a tile map
@@ -57,8 +61,8 @@ def convert_image_to_map(image_path: str, tile_method="") -> list:
     img_display = cv.cvtColor(img_display, cv.COLOR_BGR2RGB)
     wall_count = 0
     for center in loc_filtered: # The loc is in (y, x) format, we need (x, y)
-        top_left = (center[0] - w//2, center[1] - h//2)
-        bottom_right = (center[0] + w//2, center[1] + h//2)
+        top_left = (center[0] - wall_w//2, center[1] - wall_h//2)
+        bottom_right = (center[0] + wall_w//2, center[1] + wall_h//2)
         cv.rectangle(img_display, top_left, bottom_right, (255, 0, 0), 2)
         cv.circle(img_display, center, 1, (255, 0, 0), 2)
         wall_count += 1
@@ -79,8 +83,7 @@ def convert_image_to_map(image_path: str, tile_method="") -> list:
         cv.line(img_grid, left_point, right_point, (0, 0, 255), 1)
         
     # ====================== FIND RUBY AND DESTINATION ================
-    img_hsv = cv.imread(image_path)
-    img_hsv = cv.cvtColor(img_hsv, cv.COLOR_BGR2HSV)
+    img_rgb = cv.imread(image_path, cv.IMREAD_COLOR)
     PATHS = {
         "ruby": "assets/ruby.png",
         "destination": "assets/destination.png",
@@ -90,24 +93,26 @@ def convert_image_to_map(image_path: str, tile_method="") -> list:
         for col in range(0, map_size[0]):
             top_left = (top_corner[0] + col*square_width, top_corner[1] + row*square_width)
             bottom_right = (top_left[0] + square_width, top_left[1] + square_width)
-            current_tile = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+            current_tile = img_rgb[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
             
             for tile_type, tile_path in PATHS.items():
-                tile_image = cv.imread(tile_path, cv.IMREAD_GRAYSCALE)
+                tile_image = cv.imread(tile_path, cv.IMREAD_COLOR)
+                tile_image = cv.resize(tile_image, None, fx=TILE_SCALE, fy=TILE_SCALE, interpolation=cv.INTER_AREA)
                 print(f"current_tile size: {current_tile.shape}")
                 print(f"tile_image size: {tile_image.shape}")
                 result = cv.matchTemplate(current_tile, tile_image, METHOD)
                 min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
-                if max_val >= 0.8:
+                if max_val >= 0.7:
                     if tile_type == "ruby":
                         color = RED
-                    elif tile_type == "void":
-                        color = YELLOW
                     elif tile_type == "player":
-                        color = BLACK
+                        color = YELLOW
                     else:
                         color = GREEN
-                    cv.rectangle(img_grid, top_left, bottom_right, color, 4)
+                    cv.rectangle(img_grid,
+                                 (top_left[0] + 2, top_left[1] + 2),
+                                 (bottom_right[0] - 2, bottom_right[1] - 2),
+                                 color, 2)
                     break
 
     # ====================== DRAW RESULT ==============================
@@ -125,51 +130,8 @@ def convert_image_to_map(image_path: str, tile_method="") -> list:
 
     plt.suptitle('Finding All Matches')
 
+    plt.savefig("results/result.png")
     plt.show()
-
-    # Save all wall coordinate found in an image
-    save_all_point_coordinate_in_image(loc_filtered)
-    
-    
-def save_all_point_coordinate_in_image(loc_filtered) -> None:
-    loc_x = [p[0] for p in loc_filtered]
-    loc_y = [p[1] for p in loc_filtered]
-    
-    # Save all points coordinate
-    plt.figure(figsize=(8, 6))
-
-    plt.scatter(loc_x, loc_y, color='red', marker='o', s=100, zorder=5)
-
-    for (x, y) in loc_filtered:
-        # Format the coordinate text
-        label = f'({x}, {y})'
-        
-        # Add annotation slightly offset from the point
-        plt.annotate(
-            label,              # The text to display
-            (x, y),             # The point to annotate (x, y)
-            textcoords="offset points", # How to position the text
-            xytext=(5, -10),    # Offset in pixels (5 right, 10 down)
-            ha='center',        # Horizontal alignment
-            fontsize=10,
-            color='blue'
-        )
-
-    # Set plot titles and labels
-    plt.title('Plotting Points with Coordinates')
-    plt.xlabel('X Coordinate')
-    plt.ylabel('Y Coordinate')
-    plt.grid(True, linestyle='--', alpha=0.6)
-
-    # Ensure axes span the range of the data comfortably
-    plt.xlim(min(loc_x) - 1, max(loc_x) + 1)
-    plt.ylim(min(loc_y) - 1, max(loc_y) + 1)
-    
-    plt.gca().invert_yaxis()
-
-    # Save the plot
-    plt.savefig('results/scatter_plot_with_coordinates.png')
-    plt.close()
     
 
 if __name__ == "__main__":
@@ -177,4 +139,4 @@ if __name__ == "__main__":
     #         'TM_CCORR_NORMED', 'TM_SQDIFF', 'TM_SQDIFF_NORMED']
     # for meth in methods:
     #     tile_method = getattr(cv, meth)
-    convert_image_to_map('maps/map_3.png')
+    convert_image_to_map('maps/map_20.png')

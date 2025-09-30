@@ -148,7 +148,7 @@ def convert_image_to_map(image_path: str) -> list:
 
     plt.suptitle('Finding All Matches')
 
-    plt.savefig("results/result.png")
+    plt.savefig(f"results/{image_path.split('/')[-1]}")
     plt.show()
     
     # Get result as a 2D array

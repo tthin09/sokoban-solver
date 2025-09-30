@@ -4,16 +4,7 @@ import numpy as np
 # Colors
 RED = (255, 0, 0)
 GREEN = (0, 0, 255)
-BLACK = (0, 0, 0)
 YELLOW = (255, 255, 0)
-
-# HSV
-HSV_RANGE = {
-    "BLUE": [(100, 50, 50), (140, 255, 255)],
-    "GREEN": [(35, 50, 50), (85, 255, 255)],
-    "BLACK": [(0, 0, 0), (180, 255, 40)],
-    "RED": [(178, 50, 50), (180, 255, 255)]
-}
 
 
 def filter_minimum_distance(point_list: list, w: int, h: int, min_distance: int) -> list:

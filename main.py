@@ -16,9 +16,9 @@ while not game.get_win_state():
         break
     
     game.make_a_move(user)
-    game.print_map()
-    game.print_destinations()
     game.print_move_history()
+    game.print_destinations()
+    game.print_map()
     print()
     
 print("You have won!")

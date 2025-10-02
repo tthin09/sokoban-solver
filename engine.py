@@ -74,12 +74,13 @@ class Engine:
         print(self.tile_map)
         
     def print_move_history(self):
-        print(self.move_history)
+        print(f"Move history: self.move_history")
     
     def print_destinations(self):
-        print([(int(x), int(y)) for x, y in self.destinations])
+        print(f"Destinations: {[(int(x), int(y)) for x, y in self.destinations]}")
 
     def print_adjacent_squares(self):
+        print("Printing adjacent squares:")
         for direction, (dx, dy) in directions.items():
-            print(f"At {direction}: {self.tile_map[self.player_pos[0] + dx][self.player_pos[1] + dy]}")
+            print(f"\tAt {direction}: {self.tile_map[self.player_pos[0] + dx][self.player_pos[1] + dy]}")
         print(f"Current available moves {self.get_available_moves()}")

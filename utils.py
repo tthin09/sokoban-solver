@@ -1,12 +1,6 @@
 import numpy as np
 
 
-# Colors
-RED = (255, 0, 0)
-GREEN = (0, 0, 255)
-YELLOW = (255, 255, 0)
-
-
 def filter_minimum_distance(point_list: list, w: int, h: int, min_distance: int) -> list:
     filtered_locations = []
     # Create a list to store the (x, y) coordinates of the centers of approved matches

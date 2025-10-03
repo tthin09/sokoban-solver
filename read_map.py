@@ -1,12 +1,13 @@
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
+from typing import Tuple
 from utils import filter_minimum_distance
 from constants import RED, GREEN, YELLOW
 from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION
 
 
-def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> tuple[np.ndarray, list]:
+def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> Tuple[np.ndarray, list]:
     """
     Function used to read an image, and convert it to 2D map with destinations coordinate
     Args:
@@ -173,4 +174,4 @@ def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> tuple[np.ndarray,
     
 
 if __name__ == "__main__":
-    map = convert_image_to_map('maps/map_20.png')
+    map = convert_image_to_map('maps/map_3_small.png', True)

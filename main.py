@@ -3,7 +3,7 @@ from read_map import convert_image_to_map
 import numpy as np
 
 
-map_image_path = "maps/map_1.png"
+map_image_path = "maps/map_3.png"
 tile_map, destinations = convert_image_to_map(map_image_path)
 game = Engine(tile_map, destinations)
 

@@ -1,10 +1,17 @@
 from engine import Engine
 from read_map import convert_image_to_map
 import numpy as np
+import pandas as pd
 
-
-map_image_path = "maps/map_1.png"
+i = 3
+map_image_path = f"maps/map_{i}.png"
 tile_map, destinations = convert_image_to_map(map_image_path)
+df_tm = pd.DataFrame(tile_map)
+df_des = pd.DataFrame(destinations)
+
+df_tm.to_csv(f"tile_map/map_{i}.csv", index=False, header=False)
+df_des.to_csv(f"tile_map/map_{i}_des.csv", index=False, header=False)
+
 game = Engine(tile_map, destinations)
 
 game.print_map()

@@ -6,7 +6,7 @@ from constants import RED, GREEN, YELLOW
 from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION
 
 
-def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> tuple[np.ndarray, list]:
+def convert_image_to_map(image_path: str, DEBUG_MODE=False):
     """
     Function used to read an image, and convert it to 2D map with destinations coordinate
     Args:
@@ -168,7 +168,9 @@ def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> tuple[np.ndarray,
                 result[x][y] = RUBY
             elif tile_name == 'destination':
                 destinations.append((x, y))
-        
+    
+
+    
     return result, destinations
     
 

@@ -14,7 +14,7 @@ print(f'des:',des_pos)
 print(f'ruby',ruby_pos)
 print('player', player_pos)
 
-nf = np.where((nf != 0)&(nf != 1), 0, nf)
+nf = np.where((nf != 0)&(nf != 1)&(nf != 3), 0, nf)
 df = pd.DataFrame(nf)
 
 des_ = []
@@ -59,6 +59,7 @@ def bfs(queue, road, visited, destination):
     return road
 
 def player_bfs(queue, road, visited, destination):
+    print(nf)
     while True:
         x, y = queue.pop(0)
         left = [x,y-1]
@@ -100,11 +101,45 @@ def player_pos_to_push(move, next_move):
             return [a, b+ 1], "left"
     else:
         if a + 1 == x:
-            return [a-1, b], "up"
+            return [a-1, b], "down"
         else: 
-            return [a+1, b], "down"
+            return [a+1, b], "up"
+
+def update_matrix(matrix, ruby_des, act):
+    x, y = ruby_des
+    if act == "up":
+        matrix[x-1][y] = 3
+        matrix[x][y] = 0
+    elif act == "down":
+        matrix[x+1][y] = 3
+        matrix[x][y] = 0
+    elif act == "left":
+        matrix[x][y-1] = 3
+        matrix[x][y] = 0
+    else:
+        matrix[x][y+1] = 3
+        matrix[x][y] = 0
+    return matrix
+
+def move_to_string(move, next_move):
+    a = move[0]
+    b = move[1]
+    x = next_move[0]
+    y = next_move[1]
+    if a == x:
+        if b + 1 == y:
+            return "right"
+        else:
+            return "left"
+    else:
+        if a - 1 == x:
+            return "up"
+        else: 
+            return "down"
 
 def find_best_road(des, dic):
+    if dic == []:
+        return None
     road = []
     road.append([des[0],des[1]])
     prev = dic[des[0],des[1]]
@@ -114,24 +149,8 @@ def find_best_road(des, dic):
     road = road[::-1]
     return road
 
-for ruby in ruby_pos:
-    x,y = ruby
-    queue = [[x,y]]
-    par = {}
-    par[x,y] = []
-    visited = [[x,y]]
-    
-    for des in des_:
-        par = bfs(queue,par,visited, des)
-        if par.get((des[0],des[1])) is not None:
-            des_.remove([des[0],des[1]])
-            
-            
-            road = find_best_road(des,par)
-            break
-            
-    print(f'road from {road[0]} to {road[-1]}: {road}' )
-    
+def convert_road_to_string(road, player_pos=player_pos):
+    s = ""
     while len(road) > 1:
         curr = road[0]
         next = road[1]
@@ -144,5 +163,42 @@ for ruby in ruby_pos:
         v = [[x,y]]
         dic_road = player_bfs(q, r, v, prev)
         player_road = find_best_road(prev, dic_road)
+        if player_road is None:
+            print("No road for player")
+            return None
         player_pos = curr
         print(player_road, order)
+        while len(player_road) > 1:
+            curr_p = player_road[0]
+            next_p = player_road[1]
+            player_road.pop(0)
+            order_p = move_to_string(curr_p, next_p)
+            s += order_p + ","
+        s += order + ","
+        update_matrix(nf, curr, order)
+        print(s)
+    return s[:-1]
+
+for ruby in ruby_pos:
+    x,y = ruby
+    queue = [[x,y]]
+    par = {}
+    par[x,y] = []
+    visited = [[x,y]]
+    
+    for des in des_:
+        print(par)
+        par = bfs(queue,par,visited, des)
+        
+        if par.get((des[0],des[1])) is not None:
+            des_.remove([des[0],des[1]])
+            
+            
+            road = find_best_road(des,par)
+            if road is not None:
+                continue
+            break
+            
+    print(f'road from {road[0]} to {road[-1]}: {road}' )
+    
+    print(convert_road_to_string(road, player_pos))

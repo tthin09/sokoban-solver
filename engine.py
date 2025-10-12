@@ -66,6 +66,9 @@ class Engine:
                 if tile == RUBY and (row, col) not in self.destinations:
                     return False
         return True
+
+    def get_move_history(self) -> list:
+        return self.move_history
     
     def print_player_pos(self):
         print(f"Player's pos: {self.player_pos}")

@@ -64,6 +64,7 @@ def load_map(file_name):
             # 0 is empty -> ignore
 
     if player is None:
+        
         raise ValueError("Map does not contain a player (value 2)")
 
     return {
@@ -297,7 +298,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     file_name = sys.argv[1]
-    method = 'astar'
+    method = 'A*'
     if len(sys.argv) >= 3 and sys.argv[2].lower() == '--bfs':
         method = 'bfs'
 

@@ -103,11 +103,19 @@ def draw_history_stats():
     
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python pygame_version.py <map_name>")
+        print("Usage: python pygame_version.py <map_name> [--method]")
         print("Example: python pygame_version.py map_3")
+        print("Your map_name is your map's image name. Method is 'bfs' or 'A*'")
         sys.exit(1)
         
     map_name = sys.argv[1]
+    if len(sys.argv) >= 3:
+        search_method = sys.argv[2]
+    else:
+        print("No method provided in the argument, using default A* algorithm")
+        search_method = "A*"
+    
+    move_list = list(solve_and_print(map_name, search_method, printout=False))
     
     map_matrix = img2matrix(map_name)
     tile_map, destinations = convert_matrix_to_map(map_matrix).unpack()
@@ -130,10 +138,9 @@ if __name__ == "__main__":
     BOARD_W = row_count * square_width
     BOARD_H = col_count * square_width
 
-    move_list = list(solve_and_print(map_name, "A*", printout=False))
         
     current_move_index = 0
-    time_per_move = 0.1 * 1000 # millis to secs
+    time_per_move = 0.1 * 1000
     start_time = pygame.time.get_ticks()
 
     running = True

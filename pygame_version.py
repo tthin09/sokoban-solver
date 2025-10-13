@@ -1,14 +1,19 @@
 from engine import Engine
-from read_map import convert_image_to_map
-from constants import GRAY, RED, GREEN, BLUE, WHITE, BLACK
+from read_map import Map, convert_image_to_map, convert_matrix_to_map
+from constants import GRAY, RED, GREEN, BLUE, WHITE, BLACK, LIGHT_GRAY
 from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, RUBY_DONE
+from img_to_matrix import img2matrix
 import numpy as np
 import pygame
 import time
 
-map_name = "map_1"
+map_name = "map_26"
 map_image_path = f"maps/{map_name}.png"
-tile_map, destinations = convert_image_to_map(map_image_path, DEBUG_MODE=False)
+
+map_matrix = img2matrix(map_name)
+map_obj = convert_matrix_to_map(map_matrix)
+tile_map, destinations = map_obj.unpack()
+
 game = Engine(tile_map, destinations)
 
 game.print_map()
@@ -16,6 +21,7 @@ game.print_player_pos()
 
 W, H = 1200, 750
 h = H - 150
+MAP_CORNER_OFFSET = 50
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -34,9 +40,11 @@ FONT = pygame.font.Font(None, 48)
 
 
 def draw_map(screen, map: np.ndarray, destinations: list):
-    path_to_image = "assets/for_drawing/"
-    screen.fill(GRAY)
+    # Fill color background
+    screen.fill(LIGHT_GRAY)
+    pygame.draw.rect(screen, GRAY, (MAP_CORNER_OFFSET, MAP_CORNER_OFFSET, BOARD_W, BOARD_H), 0)
     # Load surfaces
+    path_to_image = "assets/for_drawing/"
     player_surface = pygame.image.load(path_to_image + "player.png")
     player_surface = pygame.transform.scale(player_surface, (square_width, square_width))
     destination_surface = pygame.image.load(path_to_image + "destination.png")
@@ -56,7 +64,7 @@ def draw_map(screen, map: np.ndarray, destinations: list):
     for destination_pos in destinations:
         row, col = destination_pos
         color = GREEN
-        tile_corner = (50 + col*square_width, 50 + row*square_width)
+        tile_corner = (MAP_CORNER_OFFSET + col*square_width, MAP_CORNER_OFFSET + row*square_width)
         destination_rect = destination_surface.get_rect()
         destination_rect.topleft = tile_corner
         screen.blit(destination_surface, destination_rect)
@@ -71,23 +79,23 @@ def draw_map(screen, map: np.ndarray, destinations: list):
                 for des in destinations:
                     if des[0] == row and des[1] == col:
                         surface = surface_map[RUBY_DONE]
-            tile_corner = (50 + col*square_width, 50 + row*square_width)
+            tile_corner = (MAP_CORNER_OFFSET + col*square_width, MAP_CORNER_OFFSET + row*square_width)
             rect = surface.get_rect()
             rect.topleft = tile_corner
             screen.blit(surface, rect)
     # Draw grid
     for row in range(row_count + 1):
         pygame.draw.line(screen, BLACK,
-                         (50, 50 + row*square_width),
-                         (50 + col_count*square_width, 50 + row*square_width),
+                         (MAP_CORNER_OFFSET, MAP_CORNER_OFFSET + row*square_width),
+                         (MAP_CORNER_OFFSET + col_count*square_width, MAP_CORNER_OFFSET + row*square_width),
                          1)
     for col in range(col_count + 1):
         pygame.draw.line(screen, BLACK,
-                         (50 + col*square_width, 50),
-                         (50 + col*square_width, 50 + row_count*square_width),
+                         (MAP_CORNER_OFFSET + col*square_width, MAP_CORNER_OFFSET),
+                         (MAP_CORNER_OFFSET + col*square_width, MAP_CORNER_OFFSET + row_count*square_width),
                          1)
     # Draw border
-    pygame.draw.rect(screen, BLACK, (50, 50,
+    pygame.draw.rect(screen, BLACK, (MAP_CORNER_OFFSET, MAP_CORNER_OFFSET,
                                      square_width*col_count, square_width*row_count), 4)
     
     # Draw history stats
@@ -118,23 +126,23 @@ def draw_history_stats():
         current_text_rect.centery = TOP_Y + 100 + i*50
         screen.blit(current_text_surface, current_text_rect)
     
+if __name__ == "__main__":
+    game.print_destinations()
+    for move in move_list.split(','):
+        draw_map(screen, game.tile_map, game.destinations)
+        pygame.display.flip()
+        game.make_a_move(move)
+        time.sleep(0.15)
 
-
-for move in move_list.split(','):
-    draw_map(screen, game.tile_map, game.destinations)
-    pygame.display.flip()
-    game.make_a_move(move)
-    time.sleep(0.15)
-
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    
-    draw_map(screen, game.tile_map, game.destinations)
-    pygame.display.flip()
-    
-pygame.quit()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        
+        draw_map(screen, game.tile_map, game.destinations)
+        pygame.display.flip()
+        
+    pygame.quit()
 
 

@@ -86,7 +86,7 @@ def img2matrix(img_name):
             matrix[round(pt[1]/cell_size), round(pt[0]/cell_size)] = layer
         
     # save img
-    cv.imwrite(f'results/{img_name}.png', img)
+    cv.imwrite(f'results/img_to_matrix/{img_name}.png', img)
     
     # save dataframe
     df = pd.DataFrame(matrix)

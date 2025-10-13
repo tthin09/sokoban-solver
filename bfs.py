@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 
-file_name = "map_1"
+file_name = "map_3"
 df = pd.read_csv(f'tile_maps/{file_name}.csv',header=None, index_col=None )
 nf = df.to_numpy()
 
 des_pos = np.argwhere((nf == 4) | (nf == 5)).tolist()
 ruby_pos = np.argwhere((nf == 3) | (nf == 5)).tolist()
 player_pos = np.argwhere(nf == 2).tolist()[0]
-
+result = ""
 
 print(f'des:',des_pos)
 print(f'ruby',ruby_pos)
@@ -59,7 +59,6 @@ def bfs(queue, road, visited, destination):
     return road
 
 def player_bfs(queue, road, visited, destination):
-    print(nf)
     while True:
         x, y = queue.pop(0)
         left = [x,y-1]
@@ -149,14 +148,15 @@ def find_best_road(des, dic):
     road = road[::-1]
     return road
 
-def convert_road_to_string(road, player_pos=player_pos):
+def convert_road_to_string(road, player_p):
     s = ""
+    player_input_pos = player_p
     while len(road) > 1:
         curr = road[0]
         next = road[1]
         road.pop(0)
         prev, order = player_pos_to_push(curr, next)
-        x ,y = player_pos
+        x ,y = player_p
         q = [[x,y]]
         r = {}
         r[x,y] = []
@@ -165,9 +165,8 @@ def convert_road_to_string(road, player_pos=player_pos):
         player_road = find_best_road(prev, dic_road)
         if player_road is None:
             print("No road for player")
-            return None
-        player_pos = curr
-        print(player_road, order)
+            return None, player_input_pos
+        player_p = curr
         while len(player_road) > 1:
             curr_p = player_road[0]
             next_p = player_road[1]
@@ -176,8 +175,9 @@ def convert_road_to_string(road, player_pos=player_pos):
             s += order_p + ","
         s += order + ","
         update_matrix(nf, curr, order)
-        print(s)
-    return s[:-1]
+    print(s)
+    return s, player_p
+
 
 for ruby in ruby_pos:
     x,y = ruby
@@ -187,12 +187,12 @@ for ruby in ruby_pos:
     visited = [[x,y]]
     
     for des in des_:
-        print(par)
         par = bfs(queue,par,visited, des)
+        if par == []:
+            continue
         
         if par.get((des[0],des[1])) is not None:
             des_.remove([des[0],des[1]])
-            
             
             road = find_best_road(des,par)
             if road is not None:
@@ -200,5 +200,10 @@ for ruby in ruby_pos:
             break
             
     print(f'road from {road[0]} to {road[-1]}: {road}' )
-    
-    print(convert_road_to_string(road, player_pos))
+    s, player_pos = convert_road_to_string(road, player_pos)
+    if s is None:
+        print("No road for ruby")
+        continue
+    result += s
+result = result[:-1]
+print(result)

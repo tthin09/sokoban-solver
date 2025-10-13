@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import pandas as pd
+from constants import PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION
 
 # empty = 0
 # wall = 1
@@ -70,16 +71,16 @@ def img2matrix(img_name):
         loc = np.where(res >= new_threshold)
         if typ == "ruby":
             color = RED 
-            layer = 3
+            layer = RUBY
         elif typ == "destination":
             color = GREEN
-            layer = 4
+            layer = DESTINATION
         elif typ == "player":
             color = YELLOW
-            layer = 2
+            layer = PLAYER
         else: 
             color = ORANGE
-            layer = 5
+            layer = RUBY_AND_DESTINATION
         
         for pt in zip(*loc[::-1]):
             cv.rectangle(img, pt, (pt[0] + cell_size, pt[1] + cell_size), color, 2)

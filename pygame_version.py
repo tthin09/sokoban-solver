@@ -3,43 +3,19 @@ from read_map import Map, convert_image_to_map, convert_matrix_to_map
 from constants import GRAY, RED, GREEN, BLUE, WHITE, BLACK, LIGHT_GRAY
 from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, RUBY_DONE
 from img_to_matrix import img2matrix
+from solve import solve_and_print
 import numpy as np
 import pygame
 import time
+import sys
 
-map_name = "map_26"
-map_image_path = f"maps/{map_name}.png"
-
-map_matrix = img2matrix(map_name)
-map_obj = convert_matrix_to_map(map_matrix)
-tile_map, destinations = map_obj.unpack()
-
-game = Engine(tile_map, destinations)
-
-game.print_map()
-game.print_player_pos()
 
 W, H = 1200, 750
 h = H - 150
 MAP_CORNER_OFFSET = 50
 
-pygame.init()
-clock = pygame.time.Clock()
-screen = pygame.display.set_mode((W, H))
-pygame.display.set_caption(f"Sokoban - {map_name}")
 
-col_count = game.tile_map.shape[0]
-row_count = game.tile_map.shape[1]
-square_width = h // row_count
-BOARD_W = row_count * square_width
-BOARD_H = col_count * square_width
-
-move_list = "up,up,left,up,up,right,left,down,down,right,right,right,up,right,up,up,left,left,up,left,left,down,down,up,left,left,down,down,right,right,left,down,down,right,right,up,up,left,up,right"
-
-FONT = pygame.font.Font(None, 48)
-
-
-def draw_map(screen, map: np.ndarray, destinations: list):
+def draw_map(screen, map: list, destinations: list):
     # Fill color background
     screen.fill(LIGHT_GRAY)
     pygame.draw.rect(screen, GRAY, (MAP_CORNER_OFFSET, MAP_CORNER_OFFSET, BOARD_W, BOARD_H), 0)
@@ -63,7 +39,6 @@ def draw_map(screen, map: np.ndarray, destinations: list):
     }
     for destination_pos in destinations:
         row, col = destination_pos
-        color = GREEN
         tile_corner = (MAP_CORNER_OFFSET + col*square_width, MAP_CORNER_OFFSET + row*square_width)
         destination_rect = destination_surface.get_rect()
         destination_rect.topleft = tile_corner
@@ -72,7 +47,7 @@ def draw_map(screen, map: np.ndarray, destinations: list):
     for row in range(row_count):
         for col in range(col_count):
             tile = map[row][col]
-            if tile == EMPTY: continue
+            if tile in [EMPTY, DESTINATION]: continue
             surface = surface_map[tile]
             # Check if ruby is at destination: Use green RUBY_DONE surface
             if tile == RUBY:
@@ -127,12 +102,39 @@ def draw_history_stats():
         screen.blit(current_text_surface, current_text_rect)
     
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python pygame_version.py <map_name>")
+        print("Example: python pygame_version.py map_3")
+        sys.exit(1)
+        
+    map_name = sys.argv[1]
+    
+    map_matrix = img2matrix(map_name)
+    tile_map, destinations = convert_matrix_to_map(map_matrix).unpack()
+
+    game = Engine(tile_map, destinations)
+    game.print_map()
+    game.print_player_pos()
     game.print_destinations()
-    for move in move_list.split(','):
-        draw_map(screen, game.tile_map, game.destinations)
-        pygame.display.flip()
-        game.make_a_move(move)
-        time.sleep(0.15)
+    
+    pygame.init()
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode((W, H))
+    pygame.display.set_caption(f"Sokoban - {map_name}")
+
+    FONT = pygame.font.Font(None, 48)
+
+    col_count = game.tile_map.shape[0]
+    row_count = game.tile_map.shape[1]
+    square_width = h // row_count
+    BOARD_W = row_count * square_width
+    BOARD_H = col_count * square_width
+
+    move_list = list(solve_and_print(map_name, "A*", printout=False))
+        
+    current_move_index = 0
+    time_per_move = 0.1 * 1000 # millis to secs
+    start_time = pygame.time.get_ticks()
 
     running = True
     while running:
@@ -140,6 +142,11 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
         
+        if pygame.time.get_ticks() - start_time > time_per_move and current_move_index < len(move_list):
+            start_time = pygame.time.get_ticks()
+            game.make_a_move(move_list[current_move_index])
+            current_move_index += 1
+            
         draw_map(screen, game.tile_map, game.destinations)
         pygame.display.flip()
         

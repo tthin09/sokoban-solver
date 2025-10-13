@@ -6,6 +6,10 @@ directions = {
     "right": (0, 1),
     "up": (-1, 0),
     "down": (1, 0),
+    "L": (0, -1),
+    "R": (0, 1),
+    "U": (-1, 0),
+    "D": (1, 0),
 }
 
 class Engine:
@@ -26,7 +30,7 @@ class Engine:
         dx, dy = directions[direction]
         next_square_pos = (self.player_pos[0] + dx, self.player_pos[1] + dy)
         next_square = self.tile_map[next_square_pos[0]][next_square_pos[1]]
-        if next_square == EMPTY:
+        if next_square in [EMPTY, DESTINATION]:
             self.tile_map[next_square_pos[0]][next_square_pos[1]] = PLAYER
             self.tile_map[self.player_pos[0]][self.player_pos[1]] = EMPTY
         elif next_square == RUBY: # Push Ruby to next square

@@ -262,11 +262,21 @@ def a_star_solve(mapdata, max_nodes=500000):
                 uid += 1
     return None
 
-def solve_and_print(file_name, method='astar'):
-    matrix = img2matrix(file_name)
-    mapdata = load_map(file_name)
-    print(f"Loaded map '{file_name}': rows={mapdata['rows']} cols={mapdata['cols']}")
-    print(f"Player at {mapdata['player']}, boxes={list(mapdata['boxes'])}, goals={list(mapdata['goals'])}")
+def solve_and_print(map_name, method='A*', printout=True) -> str:
+    """Solve the map using A* or BFS method
+
+    Args:
+        map_name (_type_): Name of map only (without full path)
+        method (str, optional): _description_. Defaults to 'A*'.
+        printout (bool, optional): Decide if we want to printout extra information from this function
+
+    Returns:
+        str: A string of moves
+    """
+    matrix = img2matrix(map_name)
+    mapdata = load_map(map_name)
+    if printout: print(f"Loaded map '{map_name}': rows={mapdata['rows']} cols={mapdata['cols']}")
+    if printout: print(f"Player at {mapdata['player']}, boxes={list(mapdata['boxes'])}, goals={list(mapdata['goals'])}")
     start_time = time.time()
     if method == 'bfs':
         result = bfs_solve(mapdata)
@@ -274,10 +284,10 @@ def solve_and_print(file_name, method='astar'):
         result = a_star_solve(mapdata)
     elapsed = time.time() - start_time
     if result is None:
-        print(f"No solution found (method={method}). Time: {elapsed:.2f}s")
+        if printout: print(f"No solution found (method={method}). Time: {elapsed:.2f}s")
     else:
-        print(f"SOLUTION ({method}) move string: {result}")
-        print(f"Length: {len(result)} moves. Time: {elapsed:.2f}s")
+        if printout: print(f"SOLUTION ({method}) move string: {result}")
+        if printout: print(f"Length: {len(result)} moves. Time: {elapsed:.2f}s")
     return result
 
 if __name__ == "__main__":

@@ -192,10 +192,10 @@ def convert_matrix_to_map(matrix: list) -> Map:
     destinations = []
     for row in range(len(matrix)):
         for col in range(len(matrix[0])):
-            if matrix[row][col] == RUBY_AND_DESTINATION:
-                matrix[row][col] = RUBY
             if matrix[row][col] in [DESTINATION, RUBY_AND_DESTINATION]:
                 destinations.append((row, col))
+            if matrix[row][col] == RUBY_AND_DESTINATION:
+                matrix[row][col] = RUBY
     return Map(matrix, destinations)
 
 

@@ -1,0 +1,3 @@
+map,method,time_sec,mem_peak_mb,solution_len
+map_5,A*,0.479,7.912,104
+map_5,bfs,0.379,7.91,104

@@ -61,6 +61,9 @@ def load_map(file_name):
                 # box on destination and also a goal cell
                 boxes.add((r, c))
                 goals.add((r, c))
+            elif val == 7:
+                goals.add((r, c))
+                player = (r, c)
             # 0 is empty -> ignore
 
     if player is None:

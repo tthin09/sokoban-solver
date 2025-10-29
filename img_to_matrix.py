@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 import pandas as pd
-from constants import PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION
+from constants import PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION, PLAYER_IN_DESTINATION
 
 # empty = 0
 # wall = 1
@@ -9,6 +9,7 @@ from constants import PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION
 # ruby = 3
 # des = 4
 # ruby in des = 5
+# player in des = 7
 
 RED = (0, 0, 255)
 GREEN = (0, 255, 0)
@@ -31,7 +32,7 @@ def img2matrix(img_name):
     # find the cell_size
     grid_size = 6
     max_fit = 0
-    for i in range(6, 12):
+    for i in range(6, 20):
         wall_resized = cv.resize(wall, (MAX_SIZE//i, MAX_SIZE//i), interpolation=cv.INTER_AREA)
         res = cv.matchTemplate(img_gray, wall_resized, cv.TM_CCOEFF_NORMED)
         threshold = 0.75
@@ -61,7 +62,8 @@ def img2matrix(img_name):
         "ruby": "assets/ruby.png",
         "destination": "assets/destination.png",
         "player": "assets/player.png",
-        "ruby_in_des": "assets/ruby_in_des.png"
+        "ruby_in_des": "assets/ruby_in_des.png",
+        "player_in_des": "assets/player_in_des.png"
     }
     for typ, path in PATHS.items():
         tile_img = cv.imread(path, cv.IMREAD_COLOR)
@@ -78,6 +80,9 @@ def img2matrix(img_name):
         elif typ == "player":
             color = YELLOW
             layer = PLAYER
+        elif typ == "player_in_des":
+            color = BLUE
+            layer = PLAYER_IN_DESTINATION
         else: 
             color = ORANGE
             layer = RUBY_AND_DESTINATION

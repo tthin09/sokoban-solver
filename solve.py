@@ -83,36 +83,44 @@ def is_goal_state(boxes, goals):
     # all boxes on goals (all box positions are subset of goals)
     return set(boxes) <= set(goals)
 
-def neighbors(state):
+def neighbors(state, goals):
     """
     Given a state (player_pos, boxes_frozenset, walls), yield (next_state, move_char).
     Note: next_state is (player_pos, boxes_frozenset)
     """
     player, boxes, walls, rows, cols = state
     boxes_set = set(boxes)
+    def is_deadlock(box, boxes, walls):
+        # ví dụ đơn giản: box bị kẹt ở góc mà không nằm trên goal
+        r, c = box
+        if (r, c) in goals:
+            return False
+        if ((r-1, c) in walls or (r+1, c) in walls) and ((r, c-1) in walls or (r, c+1) in walls):
+            return True
+        return False
     for m, (dr, dc) in MOVES.items():
-        nr = player[0] + dr
-        nc = player[1] + dc
-        if not (0 <= nr < rows and 0 <= nc < cols):
-            continue
-        if (nr, nc) in walls:
-            continue
+        nr, nc = player[0] + dr, player[1] + dc
+        if not (0 <= nr < rows and 0 <= nc < cols): continue
+        if (nr, nc) in walls: continue
+
         if (nr, nc) in boxes_set:
-            # trying to push box
-            br = nr + dr
-            bc = nc + dc
-            if not (0 <= br < rows and 0 <= bc < cols):
-                continue
-            if (br, bc) in walls or (br, bc) in boxes_set:
-                # can't push
-                continue
+            br, bc = nr + dr, nc + dc
+            if not (0 <= br < rows and 0 <= bc < cols): continue
+            if (br, bc) in walls or (br, bc) in boxes_set: continue
+
             # push succeeds
             new_boxes = set(boxes_set)
             new_boxes.remove((nr, nc))
             new_boxes.add((br, bc))
+
+            # optional: skip deadlock
+            if any(is_deadlock(b, new_boxes, walls) for b in new_boxes):
+                continue
+
             yield (( (nr, nc), frozenset(new_boxes), walls, rows, cols ), m)
+
         else:
-            # simple move
+            # allow player to move freely
             yield (( (nr, nc), boxes, walls, rows, cols ), m)
 
 def state_key(player, boxes):
@@ -161,7 +169,7 @@ def bfs_solve(mapdata, max_nodes=500000):
             # bail out if too many nodes
             return None
 
-        for (nstate, move) in neighbors(cur):
+        for (nstate, move) in neighbors(cur, goals):
             nplayer, nboxes, _, _, _ = nstate
             nkey = state_key(nplayer, nboxes)
             if nkey in came_from:
@@ -253,7 +261,7 @@ def a_star_solve(mapdata, max_nodes=500000):
         if is_goal_state(boxes, goals):
             return reconstruct_path(came_from, cur_key)
 
-        for (nstate, move) in neighbors(cur):
+        for (nstate, move) in neighbors(cur, goals):
             nplayer, nboxes, _, _, _ = nstate
             nkey = state_key(nplayer, nboxes)
             tentative_g = g + 1

@@ -2,12 +2,18 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 from typing import Tuple
-from utils import filter_minimum_distance
 from constants import RED, GREEN, YELLOW
-from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION
+from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION, PLAYER_IN_DESTINATION
 
+class Map:
+    def __init__(self, tile_map, destinations):
+        self.tile_map = tile_map
+        self.destinations = destinations
+    
+    def unpack(self):
+        return self.tile_map, self.destinations
 
-def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> Tuple[np.ndarray, list]:
+def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> Map:
     """
     Function used to read an image, and convert it to 2D map with destinations coordinate
     Args:
@@ -27,7 +33,13 @@ def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> Tuple[np.ndarray,
     
     img = cv.imread(image_path, cv.IMREAD_GRAYSCALE)
     
-    wall_template = cv.imread('assets/wall_center.png', cv.IMREAD_GRAYSCALE)
+    IMAGE_PATHS = {
+        "ruby": "assets/for_detection/ruby.png",
+        "destination": "assets/for_detection/destination.png",
+        "player": "assets/for_detection/player.png",
+        "wall": "assets/for_detection/wall_center.png"
+    }
+    wall_template = cv.imread(IMAGE_PATHS["wall"], cv.IMREAD_GRAYSCALE)
     TILE_SCALE = 1
     if img.shape[0] <= 600 or img.shape[1] <= 600:
         if DEBUG_MODE: print(f"Map size is smaller than 600x600 {img.shape}, will zoom in smaller tile template")
@@ -104,18 +116,13 @@ def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> Tuple[np.ndarray,
         
     # ====================== FIND RUBY AND DESTINATION ================
     img_rgb = cv.imread(image_path, cv.IMREAD_COLOR)
-    PATHS = {
-        "ruby": "assets/ruby.png",
-        "destination": "assets/destination.png",
-        "player": "assets/player.png"
-    }
     for row in range(0, map_size[1]):
         for col in range(0, map_size[0]):
             top_left = (top_corner[0] + col*square_width, top_corner[1] + row*square_width)
             bottom_right = (top_left[0] + square_width, top_left[1] + square_width)
             current_tile = img_rgb[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
             
-            for tile_type, tile_path in PATHS.items():
+            for tile_type, tile_path in IMAGE_PATHS.items():
                 tile_image = cv.imread(tile_path, cv.IMREAD_COLOR)
                 tile_image = cv.resize(tile_image, None, fx=TILE_SCALE, fy=TILE_SCALE, interpolation=cv.INTER_AREA)
                 result = cv.matchTemplate(current_tile, tile_image, METHOD)
@@ -155,7 +162,7 @@ def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> Tuple[np.ndarray,
     if DEBUG_MODE: plt.show()
     
     # Get result as a 2D array
-    result = np.zeros(map_size[::-1])
+    result = np.zeros(map_size[::-1]).tolist()
     destinations = []
     for tile_name, tile_center_list in tile_loc.items():
         for tile_center in tile_center_list:
@@ -170,8 +177,52 @@ def convert_image_to_map(image_path: str, DEBUG_MODE=False) -> Tuple[np.ndarray,
             elif tile_name == 'destination':
                 destinations.append((x, y))
         
-    return result, destinations
+    return Map(result, destinations)
     
+def convert_matrix_to_map(matrix: list) -> Map:
+    """Convert a 2D matrix received from img2matrix function to a list of map and its destination. Used for drawing on Pygame
+
+    Args:
+        matrix (list): A 2D matrix received from img2matrix
+
+    Returns:
+        Map: result
+    """
+    # Find destination, and filter tile that have ruby and destination in same tile
+    destinations = []
+    for row in range(len(matrix)):
+        for col in range(len(matrix[0])):
+            if matrix[row][col] in [DESTINATION, RUBY_AND_DESTINATION, PLAYER_IN_DESTINATION]:
+                destinations.append((row, col))
+            if matrix[row][col] == RUBY_AND_DESTINATION:
+                matrix[row][col] = RUBY
+    return Map(matrix, destinations)
+
+
+def filter_minimum_distance(point_list: list, w: int, h: int, min_distance: int) -> list:
+    filtered_locations = []
+    # Create a list to store the (x, y) coordinates of the centers of approved matches
+    approved_centers = []
+
+    for score, pt_y, pt_x in point_list:
+        current_center_x = pt_x + w // 2
+        current_center_y = pt_y + h // 2
+        
+        is_too_close = False
+        for center_x, center_y in approved_centers:
+            # Calculate the Euclidean distance between the current center and an approved center
+            distance = np.sqrt((current_center_x - center_x)**2 + (current_center_y - center_y)**2)
+            
+            if distance < min_distance:
+                is_too_close = True
+                break
+                
+        if not is_too_close:
+            # This is a new, distinct match. Approve it.
+            filtered_locations.append((pt_x, pt_y))
+            approved_centers.append((current_center_x, current_center_y))
+            
+    return approved_centers
 
 if __name__ == "__main__":
     map = convert_image_to_map('maps/map_3_small.png', True)

@@ -1,15 +1,19 @@
 import numpy as np
-from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION
+from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, PLAYER_IN_DESTINATION
 
 directions = {
     "left": (0, -1),
     "right": (0, 1),
     "up": (-1, 0),
     "down": (1, 0),
+    "L": (0, -1),
+    "R": (0, 1),
+    "U": (-1, 0),
+    "D": (1, 0),
 }
 
 class Engine:
-    def __init__(self, tile_map: np.ndarray, destinations: list):
+    def __init__(self, tile_map, destinations: list):
         self.tile_map = tile_map
         self.destinations = destinations
         self.player_pos = self.get_player_pos()
@@ -26,7 +30,7 @@ class Engine:
         dx, dy = directions[direction]
         next_square_pos = (self.player_pos[0] + dx, self.player_pos[1] + dy)
         next_square = self.tile_map[next_square_pos[0]][next_square_pos[1]]
-        if next_square == EMPTY:
+        if next_square in [EMPTY, DESTINATION]:
             self.tile_map[next_square_pos[0]][next_square_pos[1]] = PLAYER
             self.tile_map[self.player_pos[0]][self.player_pos[1]] = EMPTY
         elif next_square == RUBY: # Push Ruby to next square
@@ -55,7 +59,7 @@ class Engine:
     def get_player_pos(self) -> tuple:
         for x in range(self.tile_map.shape[0]):
             for y in range(self.tile_map.shape[1]):
-                if self.tile_map[x][y] == PLAYER:
+                if self.tile_map[x][y] in [PLAYER, PLAYER_IN_DESTINATION]:
                     return (x, y)
         return None
     
@@ -66,6 +70,9 @@ class Engine:
                 if tile == RUBY and (row, col) not in self.destinations:
                     return False
         return True
+
+    def get_move_history(self) -> list:
+        return self.move_history
     
     def print_player_pos(self):
         print(f"Player's pos: {self.player_pos}")

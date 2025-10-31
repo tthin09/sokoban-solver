@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from typing import Tuple
 from constants import RED, GREEN, YELLOW
-from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION
+from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION, PLAYER_IN_DESTINATION
 
 class Map:
     def __init__(self, tile_map, destinations):
@@ -192,7 +192,7 @@ def convert_matrix_to_map(matrix: list) -> Map:
     destinations = []
     for row in range(len(matrix)):
         for col in range(len(matrix[0])):
-            if matrix[row][col] in [DESTINATION, RUBY_AND_DESTINATION]:
+            if matrix[row][col] in [DESTINATION, RUBY_AND_DESTINATION, PLAYER_IN_DESTINATION]:
                 destinations.append((row, col))
             if matrix[row][col] == RUBY_AND_DESTINATION:
                 matrix[row][col] = RUBY

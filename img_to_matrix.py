@@ -16,6 +16,7 @@ GREEN = (0, 255, 0)
 YELLOW = (255, 255, 102)
 BLUE = (255,0,0)
 ORANGE = (255,0,255)
+PURPLE = (128,128,128)
 
 def img2matrix(img_name):
     img_path = f'maps/{img_name}.png'
@@ -62,8 +63,7 @@ def img2matrix(img_name):
         "ruby": "assets/ruby.png",
         "destination": "assets/destination.png",
         "player": "assets/player.png",
-        "ruby_in_des": "assets/ruby_in_des.png",
-        "player_in_des": "assets/player_in_des.png"
+        "ruby_in_des": "assets/ruby_in_des.png"
     }
     for typ, path in PATHS.items():
         tile_img = cv.imread(path, cv.IMREAD_COLOR)
@@ -80,9 +80,6 @@ def img2matrix(img_name):
         elif typ == "player":
             color = YELLOW
             layer = PLAYER
-        elif typ == "player_in_des":
-            color = BLUE
-            layer = PLAYER_IN_DESTINATION
         else: 
             color = ORANGE
             layer = RUBY_AND_DESTINATION
@@ -90,9 +87,14 @@ def img2matrix(img_name):
         for pt in zip(*loc[::-1]):
             cv.rectangle(img, pt, (pt[0] + cell_size, pt[1] + cell_size), color, 2)
             matrix[round(pt[1]/cell_size), round(pt[0]/cell_size)] = layer
+    
+    if (matrix == RUBY).sum() != (matrix == DESTINATION).sum():
+        print()
+        index = np.where(matrix == PLAYER)
+        matrix[index] = PLAYER_IN_DESTINATION
         
     # save img
-    cv.imwrite(f'results/img_to_matrix/{img_name}.png', img)
+    cv.imwrite(f'results/{img_name}.png', img)
     
     # save dataframe
     df = pd.DataFrame(matrix)

@@ -55,11 +55,6 @@ def draw_map(screen, map: list, destinations: list):
                 for des in destinations:
                     if des[0] == row and des[1] == col:
                         surface = surface_map[RUBY_DONE]
-            if tile == PLAYER_IN_DESTINATION:
-                # ✅ vẽ lại destination trước, rồi đè player lên
-                tile_corner = (MAP_CORNER_OFFSET + col * square_width, MAP_CORNER_OFFSET + row * square_width)
-                screen.blit(destination_surface, tile_corner)
-                surface = surface_map[PLAYER]
             
             tile_corner = (MAP_CORNER_OFFSET + col*square_width, MAP_CORNER_OFFSET + row*square_width)
             rect = surface.get_rect()

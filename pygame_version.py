@@ -117,7 +117,7 @@ if __name__ == "__main__":
         print("No method provided in the argument, using default A* algorithm")
         search_method = "A*"
     
-    move_list = list(solve_and_print(map_name, search_method, printout=False))
+    move_list = list(solve_and_print(map_name, search_method, printout=False)[0])
     
     map_matrix = img2matrix(map_name)
     tile_map, destinations = convert_matrix_to_map(map_matrix).unpack()

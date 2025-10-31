@@ -152,7 +152,7 @@ def bfs_solve(mapdata, max_nodes=500000):
     start_key = state_key(start_player, start_boxes)
 
     if is_goal_state(start_boxes, goals):
-        return ""
+        return "" , 0  # add rt expanded=0
 
     q = deque()
     q.append(start_state)
@@ -167,7 +167,7 @@ def bfs_solve(mapdata, max_nodes=500000):
         expanded += 1
         if expanded > max_nodes:
             # bail out if too many nodes
-            return None
+            return None, expanded # Return expanded 
 
         for (nstate, move) in neighbors(cur, goals):
             nplayer, nboxes, _, _, _ = nstate
@@ -176,9 +176,9 @@ def bfs_solve(mapdata, max_nodes=500000):
                 continue
             came_from[nkey] = (cur_key, move)
             if is_goal_state(nboxes, goals):
-                return reconstruct_path(came_from, nkey)
+                return reconstruct_path(came_from, nkey), expanded 
             q.append(nstate)
-    return None
+    return None, expanded  # Return expanded
 
 def manhattan(a, b):
     return abs(a[0]-b[0]) + abs(a[1]-b[1])
@@ -231,7 +231,7 @@ def a_star_solve(mapdata, max_nodes=500000):
     start_key = state_key(start_player, start_boxes)
 
     if is_goal_state(start_boxes, goals):
-        return ""
+        return "", 0  # return expanded=0
 
     # priority queue: (f_score, g_score, unique_id, (player, boxes))
     open_heap = []
@@ -256,10 +256,10 @@ def a_star_solve(mapdata, max_nodes=500000):
 
         expanded += 1
         if expanded > max_nodes:
-            return None
+            return None, expanded  # Return expanded
 
         if is_goal_state(boxes, goals):
-            return reconstruct_path(came_from, cur_key)
+            return reconstruct_path(came_from, cur_key), expanded  # Return expanded
 
         for (nstate, move) in neighbors(cur, goals):
             nplayer, nboxes, _, _, _ = nstate
@@ -272,7 +272,7 @@ def a_star_solve(mapdata, max_nodes=500000):
                 fscore = tentative_g + h
                 heapq.heappush(open_heap, (fscore, tentative_g, uid, nstate))
                 uid += 1
-    return None
+    return None, expanded  # Return expanded 
 
 def solve_and_print(map_name, method='A*', printout=True) -> str:
     """Solve the map using A* or BFS method
@@ -283,7 +283,7 @@ def solve_and_print(map_name, method='A*', printout=True) -> str:
         printout (bool, optional): Decide if we want to printout extra information from this function
 
     Returns:
-        str: A string of moves
+        str: A string of moves, and expanded nodes
     """
     matrix = img2matrix(map_name)
     mapdata = load_map(map_name)
@@ -291,16 +291,16 @@ def solve_and_print(map_name, method='A*', printout=True) -> str:
     if printout: print(f"Player at {mapdata['player']}, boxes={list(mapdata['boxes'])}, goals={list(mapdata['goals'])}")
     start_time = time.time()
     if method == 'bfs':
-        result = bfs_solve(mapdata)
+        result, expanded = bfs_solve(mapdata)
     else:
-        result = a_star_solve(mapdata)
+        result, expanded = a_star_solve(mapdata)
     elapsed = time.time() - start_time
     if result is None:
         if printout: print(f"No solution found (method={method}). Time: {elapsed:.2f}s")
     else:
         if printout: print(f"SOLUTION ({method}) move string: {result}")
-        if printout: print(f"Length: {len(result)} moves. Time: {elapsed:.2f}s")
-    return result
+        if printout: print(f"Length: {len(result)} moves. Time: {elapsed:.2f}s Nodes Expanded: {expanded}")
+    return result, expanded  # add expanded to return
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

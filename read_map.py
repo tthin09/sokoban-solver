@@ -6,7 +6,7 @@ from constants import RED, GREEN, YELLOW
 from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, RUBY_AND_DESTINATION
 
 class Map:
-    def __init__(self, tile_map: list[list[int]], destinations: list[Tuple[int, int]]):
+    def __init__(self, tile_map, destinations):
         self.tile_map = tile_map
         self.destinations = destinations
     

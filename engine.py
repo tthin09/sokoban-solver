@@ -1,5 +1,5 @@
 import numpy as np
-from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION
+from constants import EMPTY, WALL, PLAYER, RUBY, DESTINATION, PLAYER_IN_DESTINATION
 
 directions = {
     "left": (0, -1),
@@ -13,7 +13,7 @@ directions = {
 }
 
 class Engine:
-    def __init__(self, tile_map: np.ndarray, destinations: list):
+    def __init__(self, tile_map, destinations: list):
         self.tile_map = tile_map
         self.destinations = destinations
         self.player_pos = self.get_player_pos()
@@ -59,7 +59,7 @@ class Engine:
     def get_player_pos(self) -> tuple:
         for x in range(self.tile_map.shape[0]):
             for y in range(self.tile_map.shape[1]):
-                if self.tile_map[x][y] == PLAYER:
+                if self.tile_map[x][y] in [PLAYER, PLAYER_IN_DESTINATION]:
                     return (x, y)
         return None
     
